@@ -18,7 +18,7 @@ public class MainActivity extends Activity implements OnClickListener {
     final String LOG_TAG = "myLogs";
 
     Button btnAdd, btnRead, btnClear;
-    EditText etName, etEmail;
+    EditText etName, etAnimal, etHeight, etWeight;
 
     DBHelper dbHelper;
 
@@ -38,12 +38,12 @@ public class MainActivity extends Activity implements OnClickListener {
         btnClear.setOnClickListener(this);
 
         etName = (EditText) findViewById(R.id.etName);
-        etEmail = (EditText) findViewById(R.id.etEmail);
-
+        etAnimal = (EditText) findViewById(R.id.etAnimal);
+        etHeight = findViewById(R.id.etHeight);
+        etWeight = findViewById(R.id.etWeight);
         // создаем объект для создания и управления версиями БД
         dbHelper = new DBHelper(this);
     }
-
 
     @Override
     public void onClick(View v) {
@@ -53,25 +53,27 @@ public class MainActivity extends Activity implements OnClickListener {
 
         // получаем данные из полей ввода
         String name = etName.getText().toString();
-        String email = etEmail.getText().toString();
-
+        String animal = etAnimal.getText().toString();
+        int height = Integer.parseInt(etHeight.getText().toString());
+        int weight = Integer.parseInt(etWeight.getText().toString());
         // подключаемся к БД
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-
         if (v.getId() == R.id.btnAdd)
         {
-            Log.d(LOG_TAG, "--- Insert in mytable: ---");
+            Log.d(LOG_TAG, "--- Добавление в БД: ---");
             // подготовим данные для вставки в виде пар: наименование столбца - значение
 
             cv.put("name", name);
-            cv.put("email", email);
+            cv.put("animal", animal);
+            cv.put("height", height);
+            cv.put("weight", weight);
             // вставляем запись и получаем ее ID
             long rowID = db.insert("mytable", null, cv);
-            Log.d(LOG_TAG, "row inserted, ID = " + rowID);
+            Log.d(LOG_TAG, "Rows id, ID = " + rowID);
         } else if (v.getId() == R.id.btnRead)
             {
-            Log.d(LOG_TAG, "--- Rows in mytable: ---");
+            Log.d(LOG_TAG, "--- Записи в таблице: ---");
             // делаем запрос всех данных из таблицы mytable, получаем Cursor
             Cursor c = db.query("mytable", null, null, null, null, null, null);
             // ставим позицию курсора на первую строку выборки
@@ -81,25 +83,29 @@ public class MainActivity extends Activity implements OnClickListener {
                 // определяем номера столбцов по имени в выборке
                 int idColIndex = c.getColumnIndex("id");
                 int nameColIndex = c.getColumnIndex("name");
-                int emailColIndex = c.getColumnIndex("email");
+                int animalColIndex = c.getColumnIndex("animal");
+                int heightColIndex = c.getColumnIndex("height");
+                int weightColIndex = c.getColumnIndex("weight");
 
                 do {
                     // получаем значения по номерам столбцов и пишем все в лог
                     Log.d(LOG_TAG,
                             "ID = " + c.getInt(idColIndex) +
                                     ", name = " + c.getString(nameColIndex) +
-                                    ", email = " + c.getString(emailColIndex));
+                                    ", animal = " + c.getString(animalColIndex) +
+                                    ", height = " + c.getString(heightColIndex) +
+                                    ", weight = " + c.getString(weightColIndex));
                     // переход на следующую строку
                     // а если следующей нет (текущая - последняя), то false - выходим из цикла
                 } while (c.moveToNext());
             } else
-                Log.d(LOG_TAG, "0 rows");
+                Log.d(LOG_TAG, "0 rows ");
             c.close();
         } else if (v.getId() == R.id.btnClear) {
-            Log.d(LOG_TAG, "--- Clear mytable: ---");
+            Log.d(LOG_TAG, "--- Очистить таблицу: ---");
             // удаляем все записи
             int clearCount = db.delete("mytable", null, null);
-            Log.d(LOG_TAG, "deleted rows count = " + clearCount);
+            Log.d(LOG_TAG, "Count deleted rows = " + clearCount);
         }
         // закрываем подключение к БД
         dbHelper.close();
@@ -119,7 +125,10 @@ public class MainActivity extends Activity implements OnClickListener {
             db.execSQL("create table mytable ("
                     + "id integer primary key autoincrement,"
                     + "name text,"
-                    + "email text" + ");");
+                    + "animal text,"
+                    + "height text,"
+                    + "weight text" + ");"
+            );
         }
 
         @Override
